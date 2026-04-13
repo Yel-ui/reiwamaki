@@ -4,11 +4,13 @@ import { categories, menuItems } from "@/lib/menu-data";
 import MenuCard from "@/components/MenuCard";
 import CartSheet from "@/components/CartSheet";
 import { Button } from "@/components/ui/button";
-import { LogOut, Search } from "lucide-react";
+import { LogOut, Search, ClipboardList, UserCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
 
@@ -33,6 +35,12 @@ const Dashboard = () => {
               Hello, <span className="text-foreground font-medium">{user?.name}</span>
             </span>
             <CartSheet />
+            <Button variant="ghost" size="icon" onClick={() => navigate("/orders")} title="My Orders">
+              <ClipboardList className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
+              <UserCircle className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={logout} title="Sign out">
               <LogOut className="h-4 w-4" />
             </Button>
