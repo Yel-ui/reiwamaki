@@ -1,3 +1,9 @@
+export interface CustomizationOption {
+  id: string;
+  label: string;
+  choices: { value: string; label: string; extra?: number }[];
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -5,11 +11,80 @@ export interface MenuItem {
   price: number;
   category: string;
   image: string;
+  customizations?: CustomizationOption[];
+}
+
+export interface ItemCustomization {
+  [optionId: string]: string;
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  customizations?: ItemCustomization;
+  specialInstructions?: string;
+  cartKey: string; // unique key combining id + customizations
 }
+
+export interface CustomerInfo {
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  notes: string;
+  paymentMethod: "cod" | "gcash" | "card";
+}
+
+export interface Order {
+  id: string;
+  items: CartItem[];
+  total: number;
+  customer: CustomerInfo;
+  status: "confirmed" | "preparing" | "on-the-way" | "delivered";
+  createdAt: Date;
+}
+
+// Shared customization presets
+const spiceLevel: CustomizationOption = {
+  id: "spice",
+  label: "Spice Level",
+  choices: [
+    { value: "mild", label: "Mild" },
+    { value: "medium", label: "Medium" },
+    { value: "hot", label: "Hot 🔥" },
+    { value: "extra-hot", label: "Extra Hot 🔥🔥", extra: 10 },
+  ],
+};
+
+const riceChoice: CustomizationOption = {
+  id: "rice",
+  label: "Rice Type",
+  choices: [
+    { value: "white", label: "White Rice" },
+    { value: "brown", label: "Brown Rice", extra: 20 },
+    { value: "no-rice", label: "No Rice" },
+  ],
+};
+
+const sauceChoice: CustomizationOption = {
+  id: "sauce",
+  label: "Extra Sauce",
+  choices: [
+    { value: "none", label: "None" },
+    { value: "soy", label: "Extra Soy Sauce" },
+    { value: "spicy-mayo", label: "Spicy Mayo", extra: 15 },
+    { value: "unagi", label: "Unagi Sauce", extra: 15 },
+    { value: "ponzu", label: "Ponzu" },
+  ],
+};
+
+const drinkTemp: CustomizationOption = {
+  id: "temp",
+  label: "Temperature",
+  choices: [
+    { value: "hot", label: "Hot" },
+    { value: "iced", label: "Iced" },
+  ],
+};
 
 export const categories = [
   "All",
