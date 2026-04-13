@@ -1,0 +1,98 @@
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { categories, menuItems } from "@/lib/menu-data";
+import MenuCard from "@/components/MenuCard";
+import CartSheet from "@/components/CartSheet";
+import { Button } from "@/components/ui/button";
+import { LogOut, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+const Dashboard = () => {
+  const { user, logout } = useAuth();
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [search, setSearch] = useState("");
+
+  const filtered = menuItems.filter((item) => {
+    const matchCategory = activeCategory === "All" || item.category === activeCategory;
+    const matchSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.description.toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container flex items-center justify-between h-16">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🌸</span>
+            <h1 className="text-xl font-heading text-foreground">Rei Wa Maki</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground hidden sm:block">
+              Hello, <span className="text-foreground font-medium">{user?.name}</span>
+            </span>
+            <CartSheet />
+            <Button variant="ghost" size="icon" onClick={logout} title="Sign out">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container py-6 space-y-6">
+        {/* Hero Banner */}
+        <div className="rounded-xl bg-gradient-to-r from-cherry-light to-secondary p-6 md:p-8 animate-fade-in">
+          <h2 className="text-3xl md:text-4xl font-heading text-foreground">
+            Fresh sushi, delivered to you 🍣
+          </h2>
+          <p className="text-muted-foreground mt-2 max-w-md">
+            Browse our menu, add your favorites to the cart, and place your order in seconds.
+          </p>
+        </div>
+
+        {/* Search */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search menu..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Categories */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {categories.map((cat) => (
+            <Button
+              key={cat}
+              variant={activeCategory === cat ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveCategory(cat)}
+              className="flex-shrink-0"
+            >
+              {cat}
+            </Button>
+          ))}
+        </div>
+
+        {/* Menu Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((item) => (
+            <MenuCard key={item.id} item={item} />
+          ))}
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-4xl mb-2">🔍</div>
+            <p className="text-muted-foreground">No items found</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Dashboard;
