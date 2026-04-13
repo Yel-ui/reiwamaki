@@ -9,6 +9,8 @@ import { OrderProvider } from "@/contexts/OrderContext";
 import Index from "./pages/Index.tsx";
 import CheckoutPage from "./pages/CheckoutPage.tsx";
 import OrderStatusPage from "./pages/OrderStatusPage.tsx";
+import OrdersPage from "./pages/OrdersPage.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,9 +26,11 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/order/:id" element={<OrderStatusPage />} />
-                <Route path="*" element={<NotFound />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order/:id" element={<OrderStatusPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </OrderProvider>
