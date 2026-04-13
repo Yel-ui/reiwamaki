@@ -18,11 +18,17 @@ export interface ItemCustomization {
   [optionId: string]: string;
 }
 
-export interface CartItem extends MenuItem {
+export interface CartItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image: string;
   quantity: number;
-  customizations?: ItemCustomization;
+  selectedCustomizations?: ItemCustomization;
   specialInstructions?: string;
-  cartKey: string; // unique key combining id + customizations
+  cartKey: string;
 }
 
 export interface CustomerInfo {
