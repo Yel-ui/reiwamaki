@@ -2,17 +2,18 @@ import { useOrders } from "@/contexts/OrderContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle, ChefHat, Truck, Package } from "lucide-react";
+import { ArrowLeft, CheckCircle, ChefHat, Truck, Package, Loader2, XCircle } from "lucide-react";
 
 const statusConfig = {
   confirmed: { label: "Confirmed", icon: CheckCircle, color: "text-blue-500" },
   preparing: { label: "Preparing", icon: ChefHat, color: "text-amber-500" },
   "on-the-way": { label: "On the Way", icon: Truck, color: "text-primary" },
   delivered: { label: "Delivered", icon: Package, color: "text-green-600" },
+  cancelled: { label: "Cancelled", icon: XCircle, color: "text-destructive" },
 } as const;
 
 const OrdersPage = () => {
-  const { orders } = useOrders();
+  const { orders, loading } = useOrders();
   const navigate = useNavigate();
 
   return (
@@ -27,7 +28,11 @@ const OrdersPage = () => {
       </header>
 
       <main className="container py-6 max-w-lg space-y-4">
-        {orders.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : orders.length === 0 ? (
           <div className="text-center py-16 animate-fade-in">
             <div className="text-5xl mb-3">📋</div>
             <p className="text-muted-foreground">No orders yet</p>
@@ -35,7 +40,7 @@ const OrdersPage = () => {
           </div>
         ) : (
           orders.map((order) => {
-            const cfg = statusConfig[order.status];
+            const cfg = statusConfig[order.status] || statusConfig.confirmed;
             const Icon = cfg.icon;
             return (
               <Card
@@ -45,18 +50,17 @@ const OrdersPage = () => {
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-sm font-medium">{order.id}</span>
+                    <span className="font-mono text-sm font-medium">{order.order_number}</span>
                     <div className={`flex items-center gap-1.5 text-sm font-medium ${cfg.color}`}>
                       <Icon className="h-4 w-4" />
                       {cfg.label}
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{order.items.length} item{order.items.length !== 1 ? "s" : ""}</span>
-                    <span className="font-body font-semibold text-foreground">₱{order.total.toFixed(2)}</span>
+                    <span>₱{Number(order.total).toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(order.createdAt).toLocaleDateString()} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(order.created_at).toLocaleDateString()} · {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </CardContent>
               </Card>

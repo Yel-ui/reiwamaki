@@ -5,30 +5,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const LoginPage = () => {
   const [isSignup, setIsSignup] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const { login, signup } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSignup) {
-      signup(name, email, password);
-      toast({ title: "Welcome!", description: "Account created successfully." });
-    } else {
-      login(email, password);
-      toast({ title: "Welcome back!", description: "Logged in successfully." });
+    setSubmitting(true);
+    try {
+      if (isSignup) {
+        const { error } = await signup(name, email, password);
+        if (error) {
+          toast({ title: "Signup failed", description: error, variant: "destructive" });
+        } else {
+          toast({ title: "Check your email!", description: "We sent a confirmation link to verify your account." });
+        }
+      } else {
+        const { error } = await login(email, password);
+        if (error) {
+          toast({ title: "Login failed", description: error, variant: "destructive" });
+        } else {
+          toast({ title: "Welcome back!", description: "Logged in successfully." });
+        }
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md animate-fade-in">
-        {/* Brand */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🌸</div>
           <h1 className="text-4xl font-heading text-foreground">Rei Wa Maki</h1>
@@ -55,6 +69,7 @@ const LoginPage = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    maxLength={100}
                   />
                 </div>
               )}
@@ -67,6 +82,7 @@ const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  maxLength={255}
                 />
               </div>
               <div className="space-y-2">
@@ -78,9 +94,11 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isSignup ? "Create Account" : "Sign In"}
               </Button>
             </form>
@@ -95,10 +113,6 @@ const LoginPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        <p className="text-xs text-center text-muted-foreground mt-6">
-          This is a demo — any email & password will work
-        </p>
       </div>
     </div>
   );
