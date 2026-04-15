@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { profile, logout } = useAuth();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
@@ -23,7 +23,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
@@ -32,7 +31,7 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">
-              Hello, <span className="text-foreground font-medium">{user?.name}</span>
+              Hello, <span className="text-foreground font-medium">{profile?.name || "Guest"}</span>
             </span>
             <CartSheet />
             <Button variant="ghost" size="icon" onClick={() => navigate("/orders")} title="My Orders">
@@ -49,7 +48,6 @@ const Dashboard = () => {
       </header>
 
       <main className="container py-6 space-y-6">
-        {/* Hero Banner */}
         <div className="rounded-xl bg-gradient-to-r from-cherry-light to-secondary p-6 md:p-8 animate-fade-in">
           <h2 className="text-3xl md:text-4xl font-heading text-foreground">
             Fresh sushi, delivered to you 🍣
@@ -59,7 +57,6 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Search */}
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -70,7 +67,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Categories */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {categories.map((cat) => (
             <Button
@@ -85,7 +81,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Menu Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((item) => (
             <MenuCard key={item.id} item={item} />

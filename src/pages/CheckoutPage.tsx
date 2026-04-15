@@ -9,25 +9,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import type { CustomerInfo } from "@/lib/menu-data";
-import { ArrowLeft, MapPin, Phone, User, CreditCard } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, User, CreditCard, Loader2 } from "lucide-react";
 
 const CheckoutPage = () => {
   const { items, total, clearCart } = useCart();
   const { placeOrder } = useOrders();
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [info, setInfo] = useState<CustomerInfo>({
-    fullName: user?.name || "",
-    phone: "",
-    address: "",
+    fullName: profile?.name || "",
+    phone: profile?.phone || "",
+    address: profile?.address || "",
     city: "",
     notes: "",
     paymentMethod: "cod",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerInfo, string>>>({});
+  const [submitting, setSubmitting] = useState(false);
 
   if (items.length === 0) {
     navigate("/");
@@ -45,12 +48,21 @@ const CheckoutPage = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    const order = placeOrder(items, total, info);
-    clearCart();
-    navigate(`/order/${order.id}`);
+    setSubmitting(true);
+    try {
+      const order = await placeOrder(items, total, info);
+      if (order) {
+        clearCart();
+        navigate(`/order/${order.id}`);
+      } else {
+        toast({ title: "Order failed", description: "Please try again.", variant: "destructive" });
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const paymentMethods = [
@@ -72,7 +84,6 @@ const CheckoutPage = () => {
 
       <main className="container py-6 max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Customer Info */}
           <Card>
             <CardHeader className="pb-3">
               <h2 className="font-heading text-lg flex items-center gap-2">
@@ -82,68 +93,31 @@ const CheckoutPage = () => {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={info.fullName}
-                  onChange={(e) => setInfo({ ...info, fullName: e.target.value })}
-                  placeholder="Juan Dela Cruz"
-                  maxLength={100}
-                />
+                <Input id="fullName" value={info.fullName} onChange={(e) => setInfo({ ...info, fullName: e.target.value })} placeholder="Juan Dela Cruz" maxLength={100} />
                 {errors.fullName && <p className="text-xs text-destructive mt-1">{errors.fullName}</p>}
               </div>
               <div>
-                <Label htmlFor="phone" className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  value={info.phone}
-                  onChange={(e) => setInfo({ ...info, phone: e.target.value })}
-                  placeholder="09XX XXX XXXX"
-                  maxLength={15}
-                />
+                <Label htmlFor="phone" className="flex items-center gap-1"><Phone className="h-3 w-3" /> Phone Number</Label>
+                <Input id="phone" value={info.phone} onChange={(e) => setInfo({ ...info, phone: e.target.value })} placeholder="09XX XXX XXXX" maxLength={15} />
                 {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone}</p>}
               </div>
               <div>
-                <Label htmlFor="address" className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> Delivery Address
-                </Label>
-                <Textarea
-                  id="address"
-                  value={info.address}
-                  onChange={(e) => setInfo({ ...info, address: e.target.value })}
-                  placeholder="House/Unit No., Street, Barangay"
-                  rows={2}
-                  maxLength={300}
-                />
+                <Label htmlFor="address" className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Delivery Address</Label>
+                <Textarea id="address" value={info.address} onChange={(e) => setInfo({ ...info, address: e.target.value })} placeholder="House/Unit No., Street, Barangay" rows={2} maxLength={300} />
                 {errors.address && <p className="text-xs text-destructive mt-1">{errors.address}</p>}
               </div>
               <div>
                 <Label htmlFor="city">City / Municipality</Label>
-                <Input
-                  id="city"
-                  value={info.city}
-                  onChange={(e) => setInfo({ ...info, city: e.target.value })}
-                  placeholder="e.g. Quezon City"
-                  maxLength={100}
-                />
+                <Input id="city" value={info.city} onChange={(e) => setInfo({ ...info, city: e.target.value })} placeholder="e.g. Quezon City" maxLength={100} />
                 {errors.city && <p className="text-xs text-destructive mt-1">{errors.city}</p>}
               </div>
               <div>
                 <Label htmlFor="notes">Delivery Notes (optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={info.notes}
-                  onChange={(e) => setInfo({ ...info, notes: e.target.value })}
-                  placeholder="Gate code, landmarks, etc."
-                  rows={2}
-                  maxLength={200}
-                />
+                <Textarea id="notes" value={info.notes} onChange={(e) => setInfo({ ...info, notes: e.target.value })} placeholder="Gate code, landmarks, etc." rows={2} maxLength={200} />
               </div>
             </CardContent>
           </Card>
 
-          {/* Payment Method */}
           <Card>
             <CardHeader className="pb-3">
               <h2 className="font-heading text-lg flex items-center gap-2">
@@ -158,9 +132,7 @@ const CheckoutPage = () => {
                     type="button"
                     onClick={() => setInfo({ ...info, paymentMethod: pm.value })}
                     className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                      info.paymentMethod === pm.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
+                      info.paymentMethod === pm.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
                     }`}
                   >
                     <span className="text-xl">{pm.icon}</span>
@@ -171,7 +143,6 @@ const CheckoutPage = () => {
             </CardContent>
           </Card>
 
-          {/* Order Summary */}
           <Card>
             <CardHeader className="pb-3">
               <h2 className="font-heading text-lg">Order Summary</h2>
@@ -195,7 +166,8 @@ const CheckoutPage = () => {
             </CardContent>
           </Card>
 
-          <Button type="submit" className="w-full text-base h-12">
+          <Button type="submit" className="w-full text-base h-12" disabled={submitting}>
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Place Order — ₱{total.toFixed(2)}
           </Button>
         </form>
