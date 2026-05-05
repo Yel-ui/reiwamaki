@@ -102,14 +102,22 @@ const LoginPage = () => {
                 {isSignup ? "Create Account" : "Sign In"}
               </Button>
             </form>
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center space-y-2">
               <button
                 type="button"
                 onClick={() => setIsSignup(!isSignup)}
-                className="text-sm text-primary hover:underline font-body"
+                className="text-sm text-primary hover:underline font-body block w-full"
               >
                 {isSignup ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
               </button>
+              {!isSignup && (
+                <a
+                  href="/forgot-password"
+                  className="text-sm text-muted-foreground hover:text-primary hover:underline font-body block"
+                >
+                  Forgot your password?
+                </a>
+              )}
             </div>
           </CardContent>
         </Card>
