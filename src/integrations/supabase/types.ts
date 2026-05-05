@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      menu_items: {
+        Row: {
+          available: boolean
+          category: string
+          created_at: string
+          customizations: Json | null
+          description: string
+          id: string
+          image: string
+          name: string
+          price: number
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          category: string
+          created_at?: string
+          customizations?: Json | null
+          description?: string
+          id?: string
+          image?: string
+          name: string
+          price?: number
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          category?: string
+          created_at?: string
+          customizations?: Json | null
+          description?: string
+          id?: string
+          image?: string
+          name?: string
+          price?: number
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -124,14 +166,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "user"
       order_status:
         | "confirmed"
         | "preparing"
@@ -265,6 +335,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       order_status: [
         "confirmed",
         "preparing",

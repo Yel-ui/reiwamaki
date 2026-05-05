@@ -4,12 +4,14 @@ import { categories, menuItems } from "@/lib/menu-data";
 import MenuCard from "@/components/MenuCard";
 import CartSheet from "@/components/CartSheet";
 import { Button } from "@/components/ui/button";
-import { LogOut, Search, ClipboardList, UserCircle } from "lucide-react";
+import { LogOut, Search, ClipboardList, UserCircle, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const Dashboard = () => {
   const { profile, logout } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
@@ -34,6 +36,11 @@ const Dashboard = () => {
               Hello, <span className="text-foreground font-medium">{profile?.name || "Guest"}</span>
             </span>
             <CartSheet />
+            {isAdmin && (
+              <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin">
+                <Shield className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={() => navigate("/orders")} title="My Orders">
               <ClipboardList className="h-4 w-4" />
             </Button>
