@@ -8,6 +8,7 @@ import { LogOut, Search, ClipboardList, UserCircle, Shield } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import SakuraPetals from "@/components/SakuraPetals";
 
 const Dashboard = () => {
   const { profile, logout } = useAuth();
@@ -24,7 +25,9 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <SakuraPetals count={30} />
+      <div className="relative z-10">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
