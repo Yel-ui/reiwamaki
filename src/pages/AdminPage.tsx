@@ -20,7 +20,7 @@ import AdminPasscodeGate from "@/components/AdminPasscodeGate";
 
 const peso = (n: number) => `₱${Number(n).toFixed(2)}`;
 const STATUSES = ["confirmed", "preparing", "on-the-way", "delivered", "cancelled"] as const;
-const ACTIVE_STATUSES = ["confirmed", "preparing", "on-the-way"];
+const ACTIVE_STATUSES = ["confirmed", "preparing", "on-the-way"] as const;
 
 type Order = {
   id: string;
