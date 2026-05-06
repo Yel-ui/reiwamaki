@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import PasswordInput from "@/components/PasswordInput";
+import SakuraPetals from "@/components/SakuraPetals";
 
 const LoginPage = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -41,8 +43,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+      <SakuraPetals count={28} />
+      <div className="w-full max-w-md animate-fade-in relative z-10">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🌸</div>
           <h1 className="text-4xl font-heading text-foreground">Rei Wa Maki</h1>
@@ -87,9 +90,8 @@ const LoginPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

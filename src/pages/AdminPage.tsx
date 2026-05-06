@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Pencil, Plus, Trash2, ShoppingBag, Users, BarChart3, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
+import SakuraPetals from "@/components/SakuraPetals";
+import AdminPasscodeGate from "@/components/AdminPasscodeGate";
 
 const peso = (n: number) => `₱${Number(n).toFixed(2)}`;
 const STATUSES = ["confirmed", "preparing", "on-the-way", "delivered", "cancelled"] as const;
@@ -72,33 +74,38 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="container flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
-            <span className="text-2xl">🌸</span>
-            <h1 className="text-xl font-heading">Admin Dashboard</h1>
-          </div>
-          <Button variant="ghost" onClick={logout}>Sign out</Button>
-        </div>
-      </header>
+    <AdminPasscodeGate>
+      <div className="admin-theme min-h-screen relative overflow-hidden">
+        <SakuraPetals count={36} />
+        <div className="relative z-10">
+          <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-md border-b border-border">
+            <div className="container flex items-center justify-between h-16">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
+                <span className="text-2xl">🌸</span>
+                <h1 className="text-xl font-heading">Admin Dashboard</h1>
+              </div>
+              <Button variant="ghost" onClick={logout}>Sign out</Button>
+            </div>
+          </header>
 
-      <main className="container py-6">
-        <Tabs defaultValue="orders">
-          <TabsList className="mb-6">
-            <TabsTrigger value="orders"><ShoppingBag className="h-4 w-4 mr-2" />Orders</TabsTrigger>
-            <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-2" />Analytics</TabsTrigger>
-            <TabsTrigger value="menu"><UtensilsCrossed className="h-4 w-4 mr-2" />Menu</TabsTrigger>
-            <TabsTrigger value="customers"><Users className="h-4 w-4 mr-2" />Customers</TabsTrigger>
-          </TabsList>
-          <TabsContent value="orders"><OrdersTab /></TabsContent>
-          <TabsContent value="analytics"><AnalyticsTab /></TabsContent>
-          <TabsContent value="menu"><MenuTab /></TabsContent>
-          <TabsContent value="customers"><CustomersTab /></TabsContent>
-        </Tabs>
-      </main>
-    </div>
+          <main className="container py-6">
+            <Tabs defaultValue="orders">
+              <TabsList className="mb-6">
+                <TabsTrigger value="orders"><ShoppingBag className="h-4 w-4 mr-2" />Orders</TabsTrigger>
+                <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-2" />Analytics</TabsTrigger>
+                <TabsTrigger value="menu"><UtensilsCrossed className="h-4 w-4 mr-2" />Menu</TabsTrigger>
+                <TabsTrigger value="customers"><Users className="h-4 w-4 mr-2" />Customers</TabsTrigger>
+              </TabsList>
+              <TabsContent value="orders"><OrdersTab /></TabsContent>
+              <TabsContent value="analytics"><AnalyticsTab /></TabsContent>
+              <TabsContent value="menu"><MenuTab /></TabsContent>
+              <TabsContent value="customers"><CustomersTab /></TabsContent>
+            </Tabs>
+          </main>
+        </div>
+      </div>
+    </AdminPasscodeGate>
   );
 };
 
@@ -345,23 +352,29 @@ const CustomersTab = () => {
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
-    <Card>
-      <Table>
-        <TableHeader><TableRow>
-          <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Address</TableHead><TableHead>Joined</TableHead>
-        </TableRow></TableHeader>
-        <TableBody>
-          {profiles.map((p) => (
-            <TableRow key={p.user_id}>
-              <TableCell className="font-medium">{p.name || "—"}</TableCell>
-              <TableCell>{p.phone || "—"}</TableCell>
-              <TableCell className="max-w-xs truncate">{p.address || "—"}</TableCell>
-              <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Note: passwords are one-way encrypted and cannot be displayed. Showing all other account details below.
+      </p>
+      <Card>
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Address</TableHead><TableHead>Password</TableHead><TableHead>Joined</TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
+            {profiles.map((p) => (
+              <TableRow key={p.user_id}>
+                <TableCell className="font-medium">{p.name || "—"}</TableCell>
+                <TableCell>{p.phone || "—"}</TableCell>
+                <TableCell className="max-w-xs truncate">{p.address || "—"}</TableCell>
+                <TableCell className="text-muted-foreground italic">••••••• (encrypted)</TableCell>
+                <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 };
 
