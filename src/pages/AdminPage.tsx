@@ -14,13 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Pencil, Plus, Trash2, ShoppingBag, Users, BarChart3, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Plus, Trash2, ShoppingBag, Users, BarChart3, UtensilsCrossed, Home, Bell } from "lucide-react";
 import { toast } from "sonner";
-import SakuraPetals from "@/components/SakuraPetals";
 import AdminPasscodeGate from "@/components/AdminPasscodeGate";
 
 const peso = (n: number) => `₱${Number(n).toFixed(2)}`;
 const STATUSES = ["confirmed", "preparing", "on-the-way", "delivered", "cancelled"] as const;
+const ACTIVE_STATUSES = ["confirmed", "preparing", "on-the-way"];
 
 type Order = {
   id: string;
@@ -48,14 +48,45 @@ type MenuItem = {
   image: string; available: boolean; slug: string | null;
 };
 
+const NotificationDot = ({ count }: { count: number }) => {
+  if (!count) return null;
+  return (
+    <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold rounded-full bg-red-500 text-white shadow-md animate-pulse">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+};
+
 const AdminPage = () => {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, profile, loading: authLoading, logout } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
   const navigate = useNavigate();
+  const [pendingCount, setPendingCount] = useState(0);
+  const [tab, setTab] = useState("welcome");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/");
   }, [authLoading, user, navigate]);
+
+  const loadPending = async () => {
+    const { count } = await supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .in("status", ACTIVE_STATUSES);
+    setPendingCount(count || 0);
+  };
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    loadPending();
+    const channel = supabase
+      .channel("admin-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+        loadPending();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin]);
 
   if (authLoading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -64,7 +95,7 @@ const AdminPage = () => {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="p-8 max-w-md text-center space-y-4">
+        <Card className="p-8 max-w-md text-center space-y-4 shadow-2xl">
           <h1 className="text-2xl font-heading">Access denied</h1>
           <p className="text-muted-foreground">This area is for administrators only.</p>
           <Button onClick={() => navigate("/")}>Back to home</Button>
@@ -75,37 +106,114 @@ const AdminPage = () => {
 
   return (
     <AdminPasscodeGate>
-      <div className="admin-theme min-h-screen relative overflow-hidden">
-        <SakuraPetals count={36} />
+      <div className="admin-theme min-h-screen relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_hsl(340_30%_15%/0.5),_transparent_60%),radial-gradient(ellipse_at_bottom_right,_hsl(220_30%_15%/0.5),_transparent_60%)]">
         <div className="relative z-10">
-          <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-md border-b border-border">
+          <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-md border-b border-border shadow-lg">
             <div className="container flex items-center justify-between h-16">
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
                 <span className="text-2xl">🌸</span>
                 <h1 className="text-xl font-heading">Admin Dashboard</h1>
               </div>
-              <Button variant="ghost" onClick={logout}>Sign out</Button>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  {pendingCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-red-500 text-white shadow-md">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
+                </div>
+                <Button variant="ghost" onClick={logout}>Sign out</Button>
+              </div>
             </div>
           </header>
 
           <main className="container py-6">
-            <Tabs defaultValue="orders">
-              <TabsList className="mb-6">
-                <TabsTrigger value="orders"><ShoppingBag className="h-4 w-4 mr-2" />Orders</TabsTrigger>
-                <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-2" />Analytics</TabsTrigger>
-                <TabsTrigger value="menu"><UtensilsCrossed className="h-4 w-4 mr-2" />Menu</TabsTrigger>
-                <TabsTrigger value="customers"><Users className="h-4 w-4 mr-2" />Customers</TabsTrigger>
+            <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="flex flex-col md:flex-row gap-6">
+              <TabsList className="flex md:flex-col h-auto md:w-56 md:sticky md:top-20 p-2 bg-card/60 backdrop-blur-md border border-border/60 rounded-xl shadow-xl gap-1">
+                <TabsTrigger value="welcome" className="w-full justify-start data-[state=active]:shadow-md">
+                  <Home className="h-4 w-4 mr-2" />Welcome
+                </TabsTrigger>
+                <TabsTrigger value="orders" className="w-full justify-start data-[state=active]:shadow-md">
+                  <ShoppingBag className="h-4 w-4 mr-2" />Orders
+                  <NotificationDot count={pendingCount} />
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="w-full justify-start data-[state=active]:shadow-md">
+                  <BarChart3 className="h-4 w-4 mr-2" />Analytics
+                </TabsTrigger>
+                <TabsTrigger value="menu" className="w-full justify-start data-[state=active]:shadow-md">
+                  <UtensilsCrossed className="h-4 w-4 mr-2" />Menu
+                </TabsTrigger>
+                <TabsTrigger value="customers" className="w-full justify-start data-[state=active]:shadow-md">
+                  <Users className="h-4 w-4 mr-2" />Customers
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="orders"><OrdersTab /></TabsContent>
-              <TabsContent value="analytics"><AnalyticsTab /></TabsContent>
-              <TabsContent value="menu"><MenuTab /></TabsContent>
-              <TabsContent value="customers"><CustomersTab /></TabsContent>
+
+              <div className="flex-1 min-w-0">
+                <TabsContent value="welcome" className="mt-0">
+                  <WelcomeTab name={profile?.name || "Admin"} pendingCount={pendingCount} onGoToOrders={() => setTab("orders")} />
+                </TabsContent>
+                <TabsContent value="orders" className="mt-0"><OrdersTab /></TabsContent>
+                <TabsContent value="analytics" className="mt-0"><AnalyticsTab /></TabsContent>
+                <TabsContent value="menu" className="mt-0"><MenuTab /></TabsContent>
+                <TabsContent value="customers" className="mt-0"><CustomersTab /></TabsContent>
+              </div>
             </Tabs>
           </main>
         </div>
       </div>
     </AdminPasscodeGate>
+  );
+};
+
+/* ---------------- Welcome ---------------- */
+const WelcomeTab = ({ name, pendingCount, onGoToOrders }: { name: string; pendingCount: number; onGoToOrders: () => void }) => {
+  return (
+    <div className="relative">
+      <Card className="relative overflow-hidden p-8 md:p-12 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6)] rounded-2xl">
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-accent/20 rounded-full blur-3xl" />
+        <div className="relative space-y-4">
+          <div className="text-5xl">🌸</div>
+          <h2 className="text-3xl md:text-4xl font-heading">Welcome back, {name}</h2>
+          <p className="text-muted-foreground max-w-xl">
+            Here's a quick look at the kitchen. Use the menu on the left to manage orders, analytics, menu items and customers.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+            <Card className="relative p-5 bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Bell className="h-6 w-6 text-primary" />
+                  {pendingCount > 0 && (
+                    <span className="absolute -top-2 -right-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[11px] font-bold rounded-full bg-red-500 text-white shadow-md animate-pulse">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Active orders</p>
+                  <p className="text-2xl font-heading">{pendingCount}</p>
+                </div>
+              </div>
+              {pendingCount > 0 && (
+                <Button size="sm" className="mt-4" onClick={onGoToOrders}>View orders</Button>
+              )}
+            </Card>
+
+            <Card className="p-5 bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg">
+              <p className="text-sm text-muted-foreground">Notifications</p>
+              <p className="mt-2 text-sm">
+                {pendingCount > 0
+                  ? `🔔 You have ${pendingCount} order${pendingCount > 1 ? "s" : ""} waiting to be processed.`
+                  : "✨ All caught up. No active orders right now."}
+              </p>
+            </Card>
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 };
 
@@ -144,7 +252,7 @@ const OrdersTab = () => {
   return (
     <div className="space-y-3">
       {orders.map((o) => (
-        <Card key={o.id} className="p-4">
+        <Card key={o.id} className="p-4 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -213,11 +321,11 @@ const AnalyticsTab = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-5"><p className="text-sm text-muted-foreground">Total revenue</p><p className="text-3xl font-heading mt-2">{peso(stats.revenue)}</p></Card>
-        <Card className="p-5"><p className="text-sm text-muted-foreground">Total orders</p><p className="text-3xl font-heading mt-2">{stats.count}</p></Card>
-        <Card className="p-5"><p className="text-sm text-muted-foreground">Delivered</p><p className="text-3xl font-heading mt-2">{stats.completed}</p></Card>
+        <Card className="p-5 shadow-lg"><p className="text-sm text-muted-foreground">Total revenue</p><p className="text-3xl font-heading mt-2">{peso(stats.revenue)}</p></Card>
+        <Card className="p-5 shadow-lg"><p className="text-sm text-muted-foreground">Total orders</p><p className="text-3xl font-heading mt-2">{stats.count}</p></Card>
+        <Card className="p-5 shadow-lg"><p className="text-sm text-muted-foreground">Delivered</p><p className="text-3xl font-heading mt-2">{stats.completed}</p></Card>
       </div>
-      <Card className="p-5">
+      <Card className="p-5 shadow-lg">
         <h3 className="font-heading text-lg mb-3">Top items</h3>
         {stats.top.length === 0 ? (
           <p className="text-muted-foreground text-sm">No data yet.</p>
@@ -311,7 +419,7 @@ const MenuTab = () => {
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
       ) : (
-        <Card>
+        <Card className="shadow-lg">
           <Table>
             <TableHeader><TableRow>
               <TableHead></TableHead><TableHead>Name</TableHead><TableHead>Category</TableHead>
@@ -356,7 +464,7 @@ const CustomersTab = () => {
       <p className="text-xs text-muted-foreground">
         Note: passwords are one-way encrypted and cannot be displayed. Showing all other account details below.
       </p>
-      <Card>
+      <Card className="shadow-lg">
         <Table>
           <TableHeader><TableRow>
             <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Address</TableHead><TableHead>Password</TableHead><TableHead>Joined</TableHead>
