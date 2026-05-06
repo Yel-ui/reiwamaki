@@ -352,23 +352,29 @@ const CustomersTab = () => {
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
-    <Card>
-      <Table>
-        <TableHeader><TableRow>
-          <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Address</TableHead><TableHead>Joined</TableHead>
-        </TableRow></TableHeader>
-        <TableBody>
-          {profiles.map((p) => (
-            <TableRow key={p.user_id}>
-              <TableCell className="font-medium">{p.name || "—"}</TableCell>
-              <TableCell>{p.phone || "—"}</TableCell>
-              <TableCell className="max-w-xs truncate">{p.address || "—"}</TableCell>
-              <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Note: passwords are one-way encrypted and cannot be displayed. Showing all other account details below.
+      </p>
+      <Card>
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Address</TableHead><TableHead>Password</TableHead><TableHead>Joined</TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
+            {profiles.map((p) => (
+              <TableRow key={p.user_id}>
+                <TableCell className="font-medium">{p.name || "—"}</TableCell>
+                <TableCell>{p.phone || "—"}</TableCell>
+                <TableCell className="max-w-xs truncate">{p.address || "—"}</TableCell>
+                <TableCell className="text-muted-foreground italic">••••••• (encrypted)</TableCell>
+                <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 };
 
