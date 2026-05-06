@@ -21,7 +21,7 @@ const MenuCard = ({ item }: { item: MenuItem }) => {
 
   return (
     <>
-      <Card className="group hover:shadow-md transition-all duration-300 border-border/40 overflow-hidden">
+      <Card className="group shadow-lg hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 border-border/40 overflow-hidden">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <div className="text-4xl flex-shrink-0 mt-1">{item.image}</div>
