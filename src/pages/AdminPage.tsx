@@ -72,7 +72,7 @@ const AdminPage = () => {
     const { count } = await supabase
       .from("orders")
       .select("*", { count: "exact", head: true })
-      .in("status", ACTIVE_STATUSES as unknown as string[]);
+      .in("status", ["confirmed", "preparing", "on-the-way"]);
     setPendingCount(count || 0);
   };
 
