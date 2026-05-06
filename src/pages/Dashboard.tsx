@@ -58,7 +58,7 @@ const Dashboard = () => {
       </header>
 
       <main className="container py-6 space-y-6">
-        <div className="rounded-xl bg-gradient-to-r from-cherry-light to-secondary p-6 md:p-8 animate-fade-in">
+        <div className="rounded-xl bg-gradient-to-r from-cherry-light to-secondary p-6 md:p-8 animate-fade-in shadow-xl">
           <h2 className="text-3xl md:text-4xl font-heading text-foreground">
             Fresh sushi, delivered to you 🍣
           </h2>
