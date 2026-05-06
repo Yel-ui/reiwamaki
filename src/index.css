@@ -98,3 +98,59 @@
     @apply bg-gradient-to-r from-cherry to-accent bg-clip-text text-transparent;
   }
 }
+
+/* ---------- Admin charcoal theme ---------- */
+.admin-theme {
+  --background: 220 10% 8%;
+  --foreground: 340 25% 92%;
+  --card: 220 10% 12%;
+  --card-foreground: 340 25% 92%;
+  --popover: 220 10% 12%;
+  --popover-foreground: 340 25% 92%;
+  --primary: 340 60% 62%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 8% 18%;
+  --secondary-foreground: 340 25% 92%;
+  --muted: 220 8% 16%;
+  --muted-foreground: 220 8% 65%;
+  --accent: 340 55% 55%;
+  --accent-foreground: 0 0% 100%;
+  --border: 220 8% 22%;
+  --input: 220 8% 22%;
+  --ring: 340 60% 62%;
+  --cherry: 340 60% 62%;
+  --cherry-light: 340 30% 25%;
+  --cherry-dark: 340 50% 45%;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* ---------- Falling sakura petals ---------- */
+@keyframes sakura-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% { opacity: 1; }
+  100% {
+    transform: translate3d(var(--sway, 40px), 110vh, 0) rotate(calc(var(--rot, 360deg) + 720deg));
+    opacity: 0;
+  }
+}
+
+.sakura-petal {
+  position: absolute;
+  top: -5vh;
+  display: block;
+  background: radial-gradient(ellipse at 30% 30%,
+    hsl(340 90% 88%) 0%,
+    hsl(340 70% 75%) 45%,
+    hsl(340 55% 60%) 100%);
+  border-radius: 150% 0 150% 0;
+  box-shadow: 0 0 6px hsla(340, 70%, 70%, 0.4);
+  animation-name: sakura-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
