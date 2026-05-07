@@ -106,6 +106,7 @@ const Dashboard = () => {
         )}
       </main>
       </div>
+      <SushiMascot />
     </div>
   );
 };
