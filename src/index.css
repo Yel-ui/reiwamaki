@@ -204,3 +204,32 @@
   margin-left: 0.5rem;
 }
 
+/* ---------- Drifting theme creatures ---------- */
+@keyframes drift-lr {
+  0%   { transform: translate3d(-15vw, 0, 0); }
+  100% { transform: translate3d(115vw, 0, 0); }
+}
+@keyframes drift-rl {
+  0%   { transform: translate3d(115vw, 0, 0) scaleX(-1); }
+  100% { transform: translate3d(-15vw, 0, 0) scaleX(-1); }
+}
+@keyframes creature-bob {
+  0%, 100% { transform: translateY(calc(var(--amp, 16px) * -0.5)) rotate(-4deg); }
+  50%      { transform: translateY(calc(var(--amp, 16px) * 0.5))  rotate(4deg); }
+}
+.theme-floater {
+  position: absolute;
+  left: 0;
+  display: inline-block;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+.drift-lr { animation-name: drift-lr; }
+.drift-rl { animation-name: drift-rl; }
+.creature-bob {
+  animation: creature-bob 3.5s ease-in-out infinite;
+  will-change: transform;
+}
+
