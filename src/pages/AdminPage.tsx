@@ -108,7 +108,8 @@ const AdminPage = () => {
 
   return (
     <AdminPasscodeGate>
-      <div className="admin-theme min-h-screen relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_hsl(340_30%_15%/0.5),_transparent_60%),radial-gradient(ellipse_at_bottom_right,_hsl(220_30%_15%/0.5),_transparent_60%)]">
+      <div className="admin-theme min-h-screen relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_hsl(150_30%_8%/0.6),_transparent_60%),radial-gradient(ellipse_at_bottom_right,_hsl(220_30%_10%/0.6),_transparent_60%)]">
+        <MatrixVines />
         <div className="relative z-10">
           <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-md border-b border-border shadow-lg">
             <div className="container flex items-center justify-between h-16">
@@ -133,23 +134,27 @@ const AdminPage = () => {
 
           <main className="container py-6">
             <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="flex flex-col md:flex-row gap-6">
-              <TabsList className="flex md:flex-col h-auto md:w-56 md:sticky md:top-20 p-2 bg-card/60 backdrop-blur-md border border-border/60 rounded-xl shadow-xl gap-1">
-                <TabsTrigger value="welcome" className="w-full justify-start data-[state=active]:shadow-md">
-                  <Home className="h-4 w-4 mr-2" />Welcome
-                </TabsTrigger>
-                <TabsTrigger value="orders" className="w-full justify-start data-[state=active]:shadow-md">
-                  <ShoppingBag className="h-4 w-4 mr-2" />Orders
-                  <NotificationDot count={pendingCount} />
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="w-full justify-start data-[state=active]:shadow-md">
-                  <BarChart3 className="h-4 w-4 mr-2" />Analytics
-                </TabsTrigger>
-                <TabsTrigger value="menu" className="w-full justify-start data-[state=active]:shadow-md">
-                  <UtensilsCrossed className="h-4 w-4 mr-2" />Menu
-                </TabsTrigger>
-                <TabsTrigger value="customers" className="w-full justify-start data-[state=active]:shadow-md">
-                  <Users className="h-4 w-4 mr-2" />Customers
-                </TabsTrigger>
+              <TabsList className="flex md:flex-col h-auto md:w-auto md:sticky md:top-20 p-2 bg-card/60 backdrop-blur-md border border-border/60 rounded-2xl shadow-xl gap-1">
+                {[
+                  { v: "welcome", icon: Home, label: "Welcome" },
+                  { v: "orders", icon: ShoppingBag, label: "Orders", badge: pendingCount },
+                  { v: "analytics", icon: BarChart3, label: "Analytics" },
+                  { v: "menu", icon: UtensilsCrossed, label: "Menu" },
+                  { v: "customers", icon: Users, label: "Customers" },
+                ].map((it) => {
+                  const Icon = it.icon;
+                  return (
+                    <TabsTrigger
+                      key={it.v}
+                      value={it.v}
+                      className="nav-icon-item group w-full justify-start px-3 data-[state=active]:shadow-md relative"
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="nav-icon-label">{it.label}</span>
+                      {it.badge ? <NotificationDot count={it.badge} /> : null}
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
 
               <div className="flex-1 min-w-0">
