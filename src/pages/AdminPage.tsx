@@ -175,17 +175,73 @@ const AdminPage = () => {
 };
 
 /* ---------------- Welcome ---------------- */
+type Range = "1D" | "1W" | "1M" | "1Y";
+const RANGE_MS: Record<Range, number> = {
+  "1D": 24 * 3600 * 1000,
+  "1W": 7 * 24 * 3600 * 1000,
+  "1M": 30 * 24 * 3600 * 1000,
+  "1Y": 365 * 24 * 3600 * 1000,
+};
+
 const WelcomeTab = ({ name, pendingCount, onGoToOrders }: { name: string; pendingCount: number; onGoToOrders: () => void }) => {
+  const [range, setRange] = useState<Range>("1W");
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  const load = async () => {
+    const since = new Date(Date.now() - RANGE_MS[range]).toISOString();
+    const { data } = await supabase
+      .from("orders")
+      .select("*")
+      .gte("created_at", since)
+      .order("created_at", { ascending: true });
+    setOrders((data as Order[]) || []);
+  };
+
+  useEffect(() => {
+    load();
+    const channel = supabase
+      .channel("welcome-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [range]);
+
+  const chartData = useMemo(() => {
+    const buckets = range === "1D" ? 24 : range === "1W" ? 7 : range === "1M" ? 30 : 12;
+    const bucketMs = RANGE_MS[range] / buckets;
+    const now = Date.now();
+    const start = now - RANGE_MS[range];
+    const arr = Array.from({ length: buckets }).map((_, i) => {
+      const ts = start + i * bucketMs;
+      const label =
+        range === "1D" ? new Date(ts).getHours() + "h"
+        : range === "1Y" ? new Date(ts).toLocaleString("en", { month: "short" })
+        : new Date(ts).toLocaleDateString("en", { month: "short", day: "numeric" });
+      return { label, revenue: 0, sales: 0, ts };
+    });
+    orders.forEach((o) => {
+      const t = new Date(o.created_at).getTime();
+      const idx = Math.min(buckets - 1, Math.max(0, Math.floor((t - start) / bucketMs)));
+      arr[idx].revenue += Number(o.total) || 0;
+      arr[idx].sales += 1;
+    });
+    return arr;
+  }, [orders, range]);
+
+  const totalRevenue = chartData.reduce((s, d) => s + d.revenue, 0);
+  const totalSales = chartData.reduce((s, d) => s + d.sales, 0);
+
   return (
-    <div className="relative">
-      <Card className="relative overflow-hidden p-8 md:p-12 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6)] rounded-2xl">
+    <div className="relative space-y-6">
+      <Card className="relative overflow-hidden p-8 md:p-10 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6)] rounded-2xl">
         <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-accent/20 rounded-full blur-3xl" />
-        <div className="relative space-y-4">
+        <div className="relative space-y-3">
           <div className="text-5xl">🌸</div>
           <h2 className="text-3xl md:text-4xl font-heading">Welcome back, {name}</h2>
           <p className="text-muted-foreground max-w-xl">
-            Here's a quick look at the kitchen. Use the menu on the left to manage orders, analytics, menu items and customers.
+            Live revenue & sales feed. Updates in real time as orders come in.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
@@ -213,11 +269,66 @@ const WelcomeTab = ({ name, pendingCount, onGoToOrders }: { name: string; pendin
               <p className="text-sm text-muted-foreground">Notifications</p>
               <p className="mt-2 text-sm">
                 {pendingCount > 0
-                  ? `🔔 You have ${pendingCount} order${pendingCount > 1 ? "s" : ""} waiting to be processed.`
-                  : "✨ All caught up. No active orders right now."}
+                  ? `🔔 You have ${pendingCount} order${pendingCount > 1 ? "s" : ""} waiting.`
+                  : "✨ All caught up. No active orders."}
               </p>
             </Card>
           </div>
+        </div>
+      </Card>
+
+      <Card className="p-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+          <div>
+            <h3 className="font-heading text-xl">Revenue & Sales</h3>
+            <p className="text-sm text-muted-foreground">
+              {peso(totalRevenue)} · {totalSales} order{totalSales === 1 ? "" : "s"} · live
+            </p>
+          </div>
+          <div className="flex gap-1 p-1 rounded-lg bg-background/40 border border-border/60">
+            {(["1D", "1W", "1M", "1Y"] as Range[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`px-3 py-1 text-xs rounded-md transition ${
+                  range === r ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="sal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#4ade80" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="#4ade80" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
+              <Tooltip
+                contentStyle={{
+                  background: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
+                formatter={(v: any, k: string) => k === "revenue" ? peso(Number(v)) : v}
+              />
+              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#rev)" />
+              <Area type="monotone" dataKey="sales" stroke="#4ade80" strokeWidth={2} fill="url(#sal)" />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </Card>
     </div>
