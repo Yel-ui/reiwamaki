@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import SakuraPetals from "@/components/SakuraPetals";
 import SushiMascot from "@/components/SushiMascot";
+import ThemeCreatures from "@/components/ThemeCreatures";
 
 const Dashboard = () => {
   const { profile, logout } = useAuth();
