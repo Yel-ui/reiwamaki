@@ -29,6 +29,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <SakuraPetals count={30} />
+      <ThemeCreatures count={10} />
       <div className="relative z-10">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container flex items-center justify-between h-16">
