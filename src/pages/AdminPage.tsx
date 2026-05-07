@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Pencil, Plus, Trash2, ShoppingBag, Users, BarChart3, UtensilsCrossed, Home, Bell } from "lucide-react";
 import { toast } from "sonner";
 import AdminPasscodeGate from "@/components/AdminPasscodeGate";
+import MatrixVines from "@/components/MatrixVines";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
 const peso = (n: number) => `₱${Number(n).toFixed(2)}`;
 const STATUSES = ["confirmed", "preparing", "on-the-way", "delivered", "cancelled"] as const;
